@@ -86,7 +86,7 @@ export class DoctorController {
     );
   }
 
-  @Get(':id')
+  @Get('details/:id')
   getDoctorById(
     @Param('id', ParseUUIDPipe)
     id: string,
