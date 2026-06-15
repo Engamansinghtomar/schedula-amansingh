@@ -21,7 +21,8 @@ import {
 
   import { CreateCustomAvailabilityDto } from './dto/create-custom-availability.dto';
 
-
+  import { Appointment } from '../appointment/entities/appointment.entity';
+import { AppointmentStatus } from '../appointment/enums/appointment-status.enum';
   
   @Injectable()
   export class AvailabilityService {
@@ -34,6 +35,9 @@ import {
   
       @InjectRepository(DoctorProfile)
       private readonly doctorRepository: Repository<DoctorProfile>,
+
+      @InjectRepository(Appointment)
+      private readonly appointmentRepository: Repository<Appointment>,
   
       private readonly usersService: UsersService,
     ) {}
@@ -715,14 +719,37 @@ import {
             'No slots available',
           );
         }
+        const bookedAppointments =
+        await this.appointmentRepository.find({
+          where: {
+            doctorProfile: {
+              id: doctorId,
+            },
+            date,
+            status: AppointmentStatus.BOOKED,
+          },
+          relations: {
+            doctorProfile: true,
+          },
+        });
       
+      const availableSlots =
+        generatedSlots.filter(
+          (generatedSlot) =>
+            !bookedAppointments.some(
+              (appointment) =>
+                appointment.startTime ===
+                  generatedSlot.startTime &&
+                appointment.endTime ===
+                  generatedSlot.endTime,
+            ),
+        );
         return {
           doctorId,
           date,
           duration,
-          source:
-            availabilitySource,
-          slots: generatedSlots,
+          source: availabilitySource,
+          slots: availableSlots,
         };
       }
       

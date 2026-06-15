@@ -5,6 +5,7 @@ import { RecurringAvailability } from './entities/recurring-availability.entity'
 import { CustomAvailability } from './entities/custom-availability.entity';
 
 import { DoctorProfile } from '../doctor/entities/doctor-profile.entity';
+import { Appointment } from '../appointment/entities/appointment.entity';
 
 import { UsersModule } from '../users/users.module';
 
@@ -17,6 +18,7 @@ import { AvailabilityController } from './availability.controller';
       RecurringAvailability,
       CustomAvailability,
       DoctorProfile,
+      Appointment,
     ]),
     UsersModule,
   ],
