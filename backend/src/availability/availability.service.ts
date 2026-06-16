@@ -22,8 +22,10 @@ import {
   import { CreateCustomAvailabilityDto } from './dto/create-custom-availability.dto';
 
   import { Appointment } from '../appointment/entities/appointment.entity';
-import { AppointmentStatus } from '../appointment/enums/appointment-status.enum';
+  import { AppointmentStatus } from '../appointment/enums/appointment-status.enum';
   
+  import { SchedulingType } from '../common/enums/scheduling-type.enum';
+
   @Injectable()
   export class AvailabilityService {
     constructor(
@@ -80,7 +82,25 @@ import { AppointmentStatus } from '../appointment/enums/appointment-status.enum'
           'Start time must be before end time',
         );
       }
-  
+      if (
+        dto.schedulingType === 'STREAM'
+      ) {
+        if (!dto.slotDuration) {
+          throw new BadRequestException(
+            'Slot duration is required for STREAM scheduling',
+          );
+        }
+      }
+      
+      if (
+        dto.schedulingType === 'WAVE'
+      ) {
+        if (!dto.maxCapacity) {
+          throw new BadRequestException(
+            'Max capacity is required for WAVE scheduling',
+          );
+        }
+      }
       const existingSlots =
         await this.recurringRepository.find({
           where: {
@@ -217,6 +237,26 @@ import { AppointmentStatus } from '../appointment/enums/appointment-status.enum'
           'Start time must be before end time',
         );
       }
+
+      if (
+        dto.schedulingType === 'STREAM'
+      ) {
+        if (!dto.slotDuration) {
+          throw new BadRequestException(
+            'Slot duration is required for STREAM scheduling',
+          );
+        }
+      }
+      
+      if (
+        dto.schedulingType === 'WAVE'
+      ) {
+        if (!dto.maxCapacity) {
+          throw new BadRequestException(
+            'Max capacity is required for WAVE scheduling',
+          );
+        }
+      }
   
       const existingSlots =
         await this.recurringRepository.find({
@@ -264,6 +304,18 @@ import { AppointmentStatus } from '../appointment/enums/appointment-status.enum'
   
       availability.endTime =
         dto.endTime;
+
+        availability.schedulingType =
+        dto.schedulingType;
+      
+      availability.slotDuration =
+        dto.slotDuration;
+      
+      availability.bufferTime =
+        dto.bufferTime ?? 0;
+      
+      availability.maxCapacity =
+        dto.maxCapacity;  
   
       return this.recurringRepository.save(
         availability,
@@ -626,6 +678,30 @@ import { AppointmentStatus } from '../appointment/enums/appointment-status.enum'
       
           availabilitySlots =
             recurringAvailability;
+
+            const waveAvailability =
+  recurringAvailability.find(
+    (slot) =>
+      slot.schedulingType ===
+      SchedulingType.WAVE,
+  );
+
+if (waveAvailability) {
+  return {
+    doctorId,
+    date,
+    source: availabilitySource,
+    schedulingType: 'WAVE',
+    startTime:
+      waveAvailability.startTime,
+    endTime:
+      waveAvailability.endTime,
+    capacity:
+      waveAvailability.maxCapacity,
+    available:
+      waveAvailability.maxCapacity,  
+  };
+}
         }
       
         const generatedSlots: {

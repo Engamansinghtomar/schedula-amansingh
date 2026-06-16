@@ -17,9 +17,10 @@ import {
   import { AppointmentStatus } from './enums/appointment-status.enum';
 
   import { RecurringAvailability } from '../availability/entities/recurring-availability.entity';
-import { CustomAvailability } from '../availability/entities/custom-availability.entity';
-import { DayOfWeek } from '../common/enums/day-of-week.enum';
+  import { CustomAvailability } from '../availability/entities/custom-availability.entity';
+  import { DayOfWeek } from '../common/enums/day-of-week.enum';
   
+  import { SchedulingType } from '../common/enums/scheduling-type.enum';
   @Injectable()
   export class AppointmentService {
     constructor(
@@ -150,6 +151,21 @@ import { DayOfWeek } from '../common/enums/day-of-week.enum';
                 startTime &&
               slot.endTime === endTime,
           );
+
+          const waveAvailability =
+          recurringAvailability.find(
+            (slot) =>
+              slot.schedulingType ===
+              SchedulingType.WAVE,
+          );
+        
+        if (waveAvailability) {
+          slotExists =
+            startTime ===
+              waveAvailability.startTime &&
+            endTime ===
+              waveAvailability.endTime;
+        }  
       }
     
       if (!slotExists) {
@@ -158,29 +174,77 @@ import { DayOfWeek } from '../common/enums/day-of-week.enum';
         );
       }
     
-      const existingAppointment =
-        await this.appointmentRepository.findOne({
+      let tokenNumber: number | undefined;
+
+      const waveAvailability =
+        await this.recurringRepository.findOne({
           where: {
             doctorProfile: {
               id: doctorId,
             },
-            date,
-            startTime,
-            endTime,
-            status:
-              AppointmentStatus.BOOKED,
+            dayOfWeek,
+            schedulingType:
+              SchedulingType.WAVE,
           },
           relations: {
             doctorProfile: true,
           },
         });
-    
-      if (existingAppointment) {
-        throw new ConflictException(
-          'Slot already booked',
-        );
+      
+      if (!waveAvailability) {
+        const existingAppointment =
+          await this.appointmentRepository.findOne({
+            where: {
+              doctorProfile: {
+                id: doctorId,
+              },
+              date,
+              startTime,
+              endTime,
+              status:
+                AppointmentStatus.BOOKED,
+            },
+            relations: {
+              doctorProfile: true,
+            },
+          });
+      
+        if (existingAppointment) {
+          throw new ConflictException(
+            'Slot already booked',
+          );
+        }
+      } else {
+        const bookedCount =
+          await this.appointmentRepository.count({
+            where: {
+              doctorProfile: {
+                id: doctorId,
+              },
+              date,
+              startTime,
+              endTime,
+              status:
+                AppointmentStatus.BOOKED,
+            },
+            relations: {
+              doctorProfile: true,
+            },
+          });
+      
+        if (
+          bookedCount >=
+          waveAvailability.maxCapacity
+        ) {
+          throw new ConflictException(
+            'Wave is full',
+          );
+        }
+      
+        tokenNumber =
+          bookedCount + 1;
       }
-    
+      
       const appointment =
         this.appointmentRepository.create({
           doctorProfile: doctor,
@@ -188,6 +252,7 @@ import { DayOfWeek } from '../common/enums/day-of-week.enum';
           date,
           startTime,
           endTime,
+          tokenNumber,
           status:
             AppointmentStatus.BOOKED,
         });
