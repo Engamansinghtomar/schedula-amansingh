@@ -77,7 +77,11 @@ import {
           'Patient profile not found',
         );
       }
-    
+      if (startTime >= endTime) {
+        throw new BadRequestException(
+          'End time must be greater than start time',
+        );
+      }
       const appointmentDateTime =
         new Date(
           `${date}T${startTime}:00`,
@@ -530,6 +534,12 @@ if (minutesRemaining < 30) {
           );
         }
       
+        if (startTime >= endTime) {
+          throw new BadRequestException(
+            'End time must be greater than start time',
+          );
+        }
+        
         const newAppointmentDateTime =
           new Date(
             `${date}T${startTime}:00`,
