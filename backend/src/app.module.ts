@@ -32,6 +32,10 @@ import { PatientModule } from './patient/patient.module';
 
         database: configService.get<string>('DB_NAME'),
 
+        ssl: {
+          rejectUnauthorized: false,
+        },
+
         entities: [User],
 
         autoLoadEntities: true,
