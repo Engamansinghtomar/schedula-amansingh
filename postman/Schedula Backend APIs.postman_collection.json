@@ -1,0 +1,831 @@
+{
+  "info": {
+    "_postman_id": "56f68aa5-201e-49c3-b0ee-221c5c2c9665",
+    "name": "Schedula Backend APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52908213",
+    "_collection_link": "https://go.postman.co/collection/52908213-56f68aa5-201e-49c3-b0ee-221c5c2c9665?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "signup",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Narendra singh bhadouria\",\r\n  \"email\": \"narendra@gmail.com\",\r\n  \"password\": \"123456\",\r\n  \"role\": \"PATIENT\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/auth/signup",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"swami@example.com\",\r\n  \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Doctor",
+      "item": [
+        {
+          "name": "doctor login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"swami@example.com\",\r\n    \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create doctor profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{Doctor token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"fullName\": \"Dr. Swami\",\r\n    \"specialization\": \"Cardiologist\",\r\n    \"experience\": 10,\r\n    \"qualification\": \"MBBS, MD\",\r\n    \"consultationFee\": 500,\r\n    \"availability\": \"Mon-Fri 10AM-5PM\",\r\n    \"profileDetails\": \"Experienced Cardiologist with 10 years of practice.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/doctor/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get doctor profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{Doctor token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/doctor/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update doctor profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{doctor token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"consultationFee\": 700,\r\n  \"availability\": \"Mon-Sat 9AM-6PM\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/doctor/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All doctors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/doctor",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get doctor details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/doctor/details/{{doctorId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "details",
+                "{{doctorId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Patient",
+      "item": [
+        {
+          "name": "patient login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"narendra@gmail.com\",\r\n  \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create patient profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{patient token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"fullName\": \"Narendra Singh\",\r\n  \"age\": 22,\r\n  \"gender\": \"Male\",\r\n  \"contactDetails\": \"9876543210\",\r\n  \"healthInfo\": \"No major health issues\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/patient/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "patient",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get patient profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{patient token }}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/patient/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "patient",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update patient profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_service_role_api_key_1b1v}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"contactDetails\": \"9999999999\",\r\n  \"healthInfo\": \"Updated health information\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/patient/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "patient",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Availability",
+      "item": [
+        {
+          "name": "create recuring availability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{doctor token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"dayOfWeek\": \"MONDAY\",\r\n  \"startTime\": \"10:00\",\r\n  \"endTime\": \"12:00\",\r\n  \"schedulingType\": \"STREAM\",\r\n  \"slotDuration\": 15,\r\n  \"bufferTime\": 5\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/doctor/availability",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "availability"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create recuring availability(WAVE)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{doctor token }}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"dayOfWeek\": \"TUESDAY\",\r\n  \"startTime\": \"10:00\",\r\n  \"endTime\": \"11:00\",\r\n  \"schedulingType\": \"WAVE\",\r\n  \"maxCapacity\": 5\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/doctor/availability",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "availability"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get my availability",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{doctor token }}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/doctor/availability",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "availability"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get Availability by date",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{doctor token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/doctor/availability/date?date=2026-07-15",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "availability",
+                "date"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-07-15"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get doctor slot",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{patient token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3000/doctor/availability/{{doctorId}}/slots?date=2026-07-15&duration=15",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "availability",
+                "{{doctorId}}",
+                "slots"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-07-15"
+                },
+                {
+                  "key": "duration",
+                  "value": "15"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update Availability",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{doctor token }}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"startTime\": \"09:00\",\r\n  \"endTime\": \"13:00\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/doctor/availability/{{availabilityId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "availability",
+                "{{availabilityId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete availability",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/doctor/availability/{{availabilityId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "availability",
+                "{{availabilityId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "custom availability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{doctor token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"date\": \"2026-07-20\",\r\n  \"startTime\": \"14:00\",\r\n  \"endTime\": \"17:00\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/doctor/availability/override",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "doctor",
+                "availability",
+                "override"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Appointment",
+      "item": [
+        {
+          "name": "Book Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer {{json_web_token_18ya}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"doctorId\": \"64bd63e6-e93f-4ca9-b278-98a0f61ea86f\",\r\n    \"date\": \"2026-07-15\",\r\n    \"startTime\": \"10:00\",\r\n    \"endTime\": \"10:15\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/appointment",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "appointment"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "My appointment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/appointment/my",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "appointment",
+                "my"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Doctor Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/appointment/doctor",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "appointment",
+                "doctor"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "cancel appointment",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/appointment/{{appointmentId}}/cancel",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "appointment",
+                "{{appointmentId}}",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reschedule Appointment",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"date\": \"2026-07-16\",\r\n  \"startTime\": \"11:00\",\r\n  \"endTime\": \"11:15\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/appointment/{{appointmentId}}/reschedule",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "appointment",
+                "{{appointmentId}}",
+                "reschedule"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "Doctor token",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_1bkh",
+      "secret": true
+    },
+    {
+      "key": "doctor token",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_020h",
+      "secret": true
+    },
+    {
+      "key": "patient token",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0p7m",
+      "secret": true
+    },
+    {
+      "key": "patient token ",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_1b1v",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0swo",
+      "secret": true
+    },
+    {
+      "key": "doctor token ",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_0swo",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_01si",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_0mya",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_11k6",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_18ya",
+      "secret": true
+    }
+  ]
+}
