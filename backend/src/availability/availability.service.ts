@@ -20,6 +20,8 @@ import {
   import { UpdateRecurringAvailabilityDto } from './dto/update-recurring-availability.dto';
 
   import { CreateCustomAvailabilityDto } from './dto/create-custom-availability.dto';
+
+
   
   @Injectable()
   export class AvailabilityService {
@@ -488,6 +490,239 @@ import {
         return {
           source: 'recurring',
           slots: recurringAvailability,
+        };
+      }
+
+      async getDoctorSlots(
+        doctorId: string,
+        date: string,
+        duration: number,
+      ) {
+        const doctor =
+          await this.doctorRepository.findOne({
+            where: {
+              id: doctorId,
+            },
+          });
+      
+        if (!doctor) {
+          throw new NotFoundException(
+            'Doctor not found',
+          );
+        }
+      
+        const [year, month, day] =
+          date.split('-').map(Number);
+      
+        const requestedDate =
+          new Date(
+            year,
+            month - 1,
+            day,
+          );
+      
+        if (
+          Number.isNaN(
+            requestedDate.getTime(),
+          )
+        ) {
+          throw new BadRequestException(
+            'Invalid date',
+          );
+        }
+      
+        const today = new Date();
+      
+        today.setHours(
+          0,
+          0,
+          0,
+          0,
+        );
+      
+        requestedDate.setHours(
+          0,
+          0,
+          0,
+          0,
+        );
+      
+        if (requestedDate < today) {
+          throw new BadRequestException(
+            'Past date is not allowed',
+          );
+        }
+      
+        let availabilitySource =
+          'recurring';
+      
+        let availabilitySlots:
+          | RecurringAvailability[]
+          | CustomAvailability[];
+      
+        const customAvailability =
+          await this.customRepository.find({
+            where: {
+              doctorProfile: {
+                id: doctor.id,
+              },
+              date,
+            },
+            order: {
+              startTime: 'ASC',
+            },
+          });
+      
+        if (
+          customAvailability.length > 0
+        ) {
+          availabilitySource =
+            'custom_override';
+      
+          availabilitySlots =
+            customAvailability;
+        } else {
+          const days = [
+            'SUNDAY',
+            'MONDAY',
+            'TUESDAY',
+            'WEDNESDAY',
+            'THURSDAY',
+            'FRIDAY',
+            'SATURDAY',
+          ];
+      
+          const dayOfWeek =
+            days[
+              requestedDate.getDay()
+            ];
+      
+          const recurringAvailability =
+            await this.recurringRepository.find({
+              where: {
+                doctorProfile: {
+                  id: doctor.id,
+                },
+                dayOfWeek:
+                  dayOfWeek as any,
+              },
+              order: {
+                startTime: 'ASC',
+              },
+            });
+      
+          if (
+            recurringAvailability.length ===
+            0
+          ) {
+            throw new NotFoundException(
+              'No availability found for this date',
+            );
+          }
+      
+          availabilitySlots =
+            recurringAvailability;
+        }
+      
+        const generatedSlots: {
+          startTime: string;
+          endTime: string;
+        }[] = [];
+      
+        const now = new Date();
+      
+        for (const slot of availabilitySlots) {
+          const [
+            startHour,
+            startMinute,
+          ] = slot.startTime
+            .split(':')
+            .map(Number);
+      
+          const [
+            endHour,
+            endMinute,
+          ] = slot.endTime
+            .split(':')
+            .map(Number);
+      
+          const start =
+            new Date(
+              year,
+              month - 1,
+              day,
+            );
+      
+          start.setHours(
+            startHour,
+            startMinute,
+            0,
+            0,
+          );
+      
+          const end =
+            new Date(
+              year,
+              month - 1,
+              day,
+            );
+      
+          end.setHours(
+            endHour,
+            endMinute,
+            0,
+            0,
+          );
+      
+          let current =
+            new Date(start);
+      
+          while (current < end) {
+            const next =
+              new Date(current);
+      
+            next.setMinutes(
+              next.getMinutes() +
+                duration,
+            );
+      
+            if (next > end) {
+              break;
+            }
+      
+            if (current > now) {
+              generatedSlots.push({
+                startTime:
+                  current
+                    .toTimeString()
+                    .slice(0, 5),
+      
+                endTime:
+                  next
+                    .toTimeString()
+                    .slice(0, 5),
+              });
+            }
+      
+            current = next;
+          }
+        }
+      
+        if (
+          generatedSlots.length === 0
+        ) {
+          throw new NotFoundException(
+            'No slots available',
+          );
+        }
+      
+        return {
+          doctorId,
+          date,
+          duration,
+          source:
+            availabilitySource,
+          slots: generatedSlots,
         };
       }
       
