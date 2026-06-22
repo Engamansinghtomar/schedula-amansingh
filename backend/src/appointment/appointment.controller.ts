@@ -13,6 +13,7 @@ import {
 import { AppointmentService } from './appointment.service';
 
 import { BookAppointmentDto } from './dto/book-appointment.dto';
+import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -88,6 +89,28 @@ export class AppointmentController {
     return this.appointmentService.cancelAppointment(
       req.user.id,
       appointmentId,
+    );
+  }
+
+  @UseGuards(
+    JwtAuthGuard,
+    RolesGuard,
+  )
+  @Roles(Role.PATIENT)
+  @Patch(':id/reschedule')
+  rescheduleAppointment(
+    @Req() req: any,
+    @Param('id', ParseUUIDPipe)
+    appointmentId: string,
+    @Body()
+    dto: RescheduleAppointmentDto,
+  ) {
+    return this.appointmentService.rescheduleAppointment(
+      req.user.id,
+      appointmentId,
+      dto.date,
+      dto.startTime,
+      dto.endTime,
     );
   }
 }

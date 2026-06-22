@@ -43,6 +43,11 @@ import {
   
     @Column()
     endTime: string;
+
+    @Column({
+      nullable: true,
+    })
+    tokenNumber: number;
   
     @Column({
       type: 'enum',
