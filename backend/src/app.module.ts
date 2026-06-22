@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AppController } from './app.controller';
+
 import { User } from './users/entities/user.entity';
 
 import { AuthModule } from './auth/auth.module';
@@ -22,8 +24,7 @@ import { AppointmentModule } from './appointment/appointment.module';
       inject: [ConfigService],
 
       useFactory: (configService: ConfigService) => {
-        const host =
-          configService.get<string>('DB_HOST');
+        const host = configService.get<string>('DB_HOST');
 
         return {
           type: 'postgres',
@@ -34,20 +35,17 @@ import { AppointmentModule } from './appointment/appointment.module';
             configService.get<string>('DB_PORT'),
           ),
 
-          username:
-            configService.get<string>(
-              'DB_USERNAME',
-            ),
+          username: configService.get<string>(
+            'DB_USERNAME',
+          ),
 
-          password:
-            configService.get<string>(
-              'DB_PASSWORD',
-            ),
+          password: configService.get<string>(
+            'DB_PASSWORD',
+          ),
 
-          database:
-            configService.get<string>(
-              'DB_NAME',
-            ),
+          database: configService.get<string>(
+            'DB_NAME',
+          ),
 
           ssl:
             host === 'localhost'
@@ -72,5 +70,7 @@ import { AppointmentModule } from './appointment/appointment.module';
     AvailabilityModule,
     AppointmentModule,
   ],
+
+  controllers: [AppController],
 })
 export class AppModule {}
