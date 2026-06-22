@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { DoctorModule } from './doctor/doctor.module';
 import { PatientModule } from './patient/patient.module';
+import { AvailabilityModule } from './availability/availability.module';
 
 @Module({
   imports: [
@@ -19,35 +20,55 @@ import { PatientModule } from './patient/patient.module';
       imports: [ConfigModule],
       inject: [ConfigService],
 
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
+      useFactory: (configService: ConfigService) => {
+        const host =
+          configService.get<string>('DB_HOST');
 
-        host: configService.get<string>('DB_HOST'),
+        return {
+          type: 'postgres',
 
-        port: Number(configService.get<string>('DB_PORT')),
+          host,
 
-        username: configService.get<string>('DB_USERNAME'),
+          port: Number(
+            configService.get<string>('DB_PORT'),
+          ),
 
-        password: configService.get<string>('DB_PASSWORD'),
+          username:
+            configService.get<string>(
+              'DB_USERNAME',
+            ),
 
-        database: configService.get<string>('DB_NAME'),
+          password:
+            configService.get<string>(
+              'DB_PASSWORD',
+            ),
 
-        ssl: {
-          rejectUnauthorized: false,
-        },
+          database:
+            configService.get<string>(
+              'DB_NAME',
+            ),
 
-        entities: [User],
+          ssl:
+            host === 'localhost'
+              ? false
+              : {
+                  rejectUnauthorized: false,
+                },
 
-        autoLoadEntities: true,
+          entities: [User],
 
-        synchronize: true,
-      }),
+          autoLoadEntities: true,
+
+          synchronize: true,
+        };
+      },
     }),
 
     AuthModule,
     UsersModule,
     DoctorModule,
     PatientModule,
+    AvailabilityModule,
   ],
 })
 export class AppModule {}
