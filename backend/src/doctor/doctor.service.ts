@@ -80,14 +80,20 @@ export class DoctorService {
           user: true,
         },
       });
-
+  
     if (!profile) {
       throw new NotFoundException(
         'Doctor profile not found',
       );
     }
-
-    return profile;
+  
+    const { password, ...safeUser } =
+      profile.user;
+  
+    return {
+      ...profile,
+      user: safeUser,
+    };
   }
 
   async update(
@@ -117,7 +123,18 @@ export class DoctorService {
       updateDoctorProfileDto,
     );
 
-    return this.doctorRepository.save(profile);
+    const updatedProfile =
+  await this.doctorRepository.save(
+    profile,
+  );
+
+const { password, ...safeUser } =
+  updatedProfile.user;
+
+return {
+  ...updatedProfile,
+  user: safeUser,
+};
   }
 
   async getDoctors(
