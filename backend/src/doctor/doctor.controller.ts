@@ -67,6 +67,37 @@ export class DoctorController {
     );
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.DOCTOR)
+  @Get('appointments')
+  getMyAppointments(
+    @Req() req: any,
+    @Query('date') date?: string,
+  ) {
+      
+
+    return this.doctorService.getMyAppointments(
+      req.user.id,
+      date,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.DOCTOR)
+  @Patch(
+    'appointments/:id/cancel',
+  )
+  cancelAppointment(
+    @Req() req: any,
+    @Param('id', ParseUUIDPipe)
+    appointmentId: string,
+  ) {
+    return this.doctorService.cancelAppointment(
+      req.user.id,
+      appointmentId,
+    );
+  }
+
   @Get()
   getDoctors(
     @Query('search') search?: string,
