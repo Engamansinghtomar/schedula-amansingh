@@ -15,6 +15,8 @@ import { CustomAvailability } from '../availability/entities/custom-availability
 
 import { AvailabilityModule } from '../availability/availability.module';
 
+import { NotificationModule } from '../notification/notification.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -24,8 +26,10 @@ import { AvailabilityModule } from '../availability/availability.module';
       PatientProfile,
       RecurringAvailability,
       CustomAvailability,
+     
     ]),
     AvailabilityModule,
+    NotificationModule,
   ],
   controllers: [AppointmentController],
   providers: [AppointmentService],
