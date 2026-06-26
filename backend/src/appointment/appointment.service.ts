@@ -456,9 +456,19 @@ export class AppointmentService {
     appointment.status =
       AppointmentStatus.CANCELLED;
 
-    return this.appointmentRepository.save(
-      appointment,
+    const updatedAppointment =
+      await this.appointmentRepository.save(
+        appointment,
+      );
+
+    await this.notificationService.createNotification(
+      patient.id,
+      'Appointment Cancelled',
+      `Your appointment scheduled on ${appointment.date} at ${appointment.startTime} has been cancelled.`,
+      NotificationType.APPOINTMENT_CANCELLED,
     );
+
+    return updatedAppointment;
   }
 
   async rescheduleAppointment(
@@ -629,13 +639,11 @@ export class AppointmentService {
           },
         });
 
-      slotExists =
+        slotExists =
         recurringAvailability.some(
           (slot) =>
-            slot.startTime ===
-            startTime &&
-            slot.endTime ===
-            endTime,
+            startTime >= slot.startTime &&
+            endTime <= slot.endTime,
         );
 
       const waveAvailability =
@@ -755,6 +763,13 @@ export class AppointmentService {
     const updatedAppointment =
       await this.appointmentRepository.save(
         appointment,
+      );
+
+      await this.notificationService.createNotification(
+        patient.id,
+        'Appointment Rescheduled',
+        `Your appointment has been rescheduled to ${date} at ${startTime}.`,
+        NotificationType.APPOINTMENT_RESCHEDULED,
       );
 
     return {
