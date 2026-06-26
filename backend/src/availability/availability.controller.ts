@@ -103,6 +103,21 @@ export class AvailabilityController {
     JwtAuthGuard,
     RolesGuard,
   )
+  @Roles(Role.PATIENT)
+  @Get(':doctorId/next-available')
+  findNextAvailableAppointment(
+    @Param('doctorId', ParseUUIDPipe)
+    doctorId: string,
+  ) {
+    return this.availabilityService.findNextAvailableAppointment(
+      doctorId,
+    );
+  }
+
+  @UseGuards(
+    JwtAuthGuard,
+    RolesGuard,
+  )
   @Roles(Role.DOCTOR)
   @Patch(':id')
   updateRecurringAvailability(
