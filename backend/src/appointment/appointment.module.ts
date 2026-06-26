@@ -16,6 +16,9 @@ import { CustomAvailability } from '../availability/entities/custom-availability
 import { AvailabilityModule } from '../availability/availability.module';
 
 import { NotificationModule } from '../notification/notification.module';
+import { AppointmentReminderService } from './appointment-reminder/appointment-reminder.service';
+
+
 
 @Module({
   imports: [
@@ -32,6 +35,6 @@ import { NotificationModule } from '../notification/notification.module';
     NotificationModule,
   ],
   controllers: [AppointmentController],
-  providers: [AppointmentService],
+  providers: [AppointmentService, AppointmentReminderService],
 })
 export class AppointmentModule {}
