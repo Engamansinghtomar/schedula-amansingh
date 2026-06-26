@@ -18,11 +18,17 @@ import { UsersService } from '../users/users.service';
 import { CreateDoctorProfileDto } from './dto/create-doctor-profile.dto';
 import { UpdateDoctorProfileDto } from './dto/update-doctor-profile.dto';
 
+import { Appointment } from '../appointment/entities/appointment.entity';
+import { AppointmentStatus } from '../appointment/enums/appointment-status.enum';
+
 @Injectable()
 export class DoctorService {
   constructor(
     @InjectRepository(DoctorProfile)
     private readonly doctorRepository: Repository<DoctorProfile>,
+
+    @InjectRepository(Appointment)
+    private readonly appointmentRepository: Repository<Appointment>,
 
     private readonly usersService: UsersService,
   ) {}
@@ -80,16 +86,16 @@ export class DoctorService {
           user: true,
         },
       });
-  
+
     if (!profile) {
       throw new NotFoundException(
         'Doctor profile not found',
       );
     }
-  
+
     const { password, ...safeUser } =
       profile.user;
-  
+
     return {
       ...profile,
       user: safeUser,
@@ -124,17 +130,17 @@ export class DoctorService {
     );
 
     const updatedProfile =
-  await this.doctorRepository.save(
-    profile,
-  );
+      await this.doctorRepository.save(
+        profile,
+      );
 
-const { password, ...safeUser } =
-  updatedProfile.user;
+    const { password, ...safeUser } =
+      updatedProfile.user;
 
-return {
-  ...updatedProfile,
-  user: safeUser,
-};
+    return {
+      ...updatedProfile,
+      user: safeUser,
+    };
   }
 
   async getDoctors(
@@ -221,5 +227,117 @@ return {
     }
 
     return doctor;
+  }
+
+  async getMyAppointments(
+    
+    userId: string,
+    date?: string,
+  )   {
+    console.log('getMyAppointments called');
+    const doctor =
+      await this.doctorRepository.findOne({
+        where: {
+          user: {
+            id: userId,
+          },
+        },
+        relations: {
+          user: true,
+        },
+      });
+
+    if (!doctor) {
+      throw new NotFoundException(
+        'Doctor profile not found',
+      );
+    }
+
+    const where: any = {
+      doctorProfile: {
+        id: doctor.id,
+      },
+      status: AppointmentStatus.BOOKED,
+    };
+
+    if (date) {
+      where.date = date;
+    }
+
+    return this.appointmentRepository.find({
+      where,
+      relations: {
+        patientProfile: {
+          user: true,
+        },
+      },
+      order: {
+        date: 'DESC',
+      },
+    });
+  }
+
+  async cancelAppointment(
+    userId: string,
+    appointmentId: string,
+  ) {
+    const doctor =
+      await this.doctorRepository.findOne({
+        where: {
+          user: {
+            id: userId,
+          },
+        },
+        relations: {
+          user: true,
+        },
+      });
+
+    if (!doctor) {
+      throw new NotFoundException(
+        'Doctor profile not found',
+      );
+    }
+
+    const appointment =
+      await this.appointmentRepository.findOne({
+        where: {
+          id: appointmentId,
+        },
+        relations: {
+          doctorProfile: true,
+        },
+      });
+
+    if (!appointment) {
+      throw new NotFoundException(
+        'Appointment not found',
+      );
+    }
+
+    if (
+      appointment.doctorProfile.id !==
+      doctor.id
+    ) {
+      throw new ConflictException(
+        'Unauthorized access',
+      );
+    }
+
+    if (
+      appointment.status ===
+      AppointmentStatus.CANCELLED
+    ) {
+      throw new ConflictException(
+        'Appointment already cancelled',
+      );
+    }
+
+    appointment.status =
+      AppointmentStatus.CANCELLED;
+
+    return this.appointmentRepository.save(
+      appointment,
+    );
   }
 }

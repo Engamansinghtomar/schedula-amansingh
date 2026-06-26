@@ -12,6 +12,8 @@ import { User } from '../../users/entities/user.entity';
 import { RecurringAvailability } from '../../availability/entities/recurring-availability.entity';
 import { CustomAvailability } from '../../availability/entities/custom-availability.entity';
 
+import { Appointment } from '../../appointment/entities/appointment.entity';
+
 @Entity('doctor_profiles')
 export class DoctorProfile {
   @PrimaryGeneratedColumn('uuid')
@@ -57,4 +59,10 @@ export class DoctorProfile {
     (availability) => availability.doctorProfile,
   )
   customAvailabilities: CustomAvailability[];
+
+  @OneToMany(
+    () => Appointment,
+    (appointment) => appointment.doctorProfile,
+  )
+  appointments: Appointment[];
 }
