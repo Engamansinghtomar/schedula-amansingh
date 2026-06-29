@@ -83,6 +83,31 @@ export class AppointmentService {
         'Patient profile not found',
       );
     }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const bookingDate = new Date(date);
+
+    if (isNaN(bookingDate.getTime())) {
+      throw new BadRequestException(
+        'Invalid date format',
+      );
+    }
+
+    bookingDate.setHours(0, 0, 0, 0);
+
+    if (bookingDate < today) {
+      throw new BadRequestException(
+        'Past date booking is not allowed',
+      );
+    }
+
+    if (bookingDate > today) {
+      throw new BadRequestException(
+        'Booking is allowed only for today',
+      );
+    }
     if (startTime >= endTime) {
       throw new BadRequestException(
         'End time must be greater than start time',
@@ -639,7 +664,7 @@ export class AppointmentService {
           },
         });
 
-        slotExists =
+      slotExists =
         recurringAvailability.some(
           (slot) =>
             startTime >= slot.startTime &&
@@ -765,12 +790,12 @@ export class AppointmentService {
         appointment,
       );
 
-      await this.notificationService.createNotification(
-        patient.id,
-        'Appointment Rescheduled',
-        `Your appointment has been rescheduled to ${date} at ${startTime}.`,
-        NotificationType.APPOINTMENT_RESCHEDULED,
-      );
+    await this.notificationService.createNotification(
+      patient.id,
+      'Appointment Rescheduled',
+      `Your appointment has been rescheduled to ${date} at ${startTime}.`,
+      NotificationType.APPOINTMENT_RESCHEDULED,
+    );
 
     return {
       message:
