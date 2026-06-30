@@ -165,14 +165,14 @@ export class AppointmentService {
       new Date(`${date}T${recurringAvailability.startTime}:00`);
 
     bookingOpenTime.setHours(
-      bookingOpenTime.getHours() - 30,
+      bookingOpenTime.getHours() - 2,
     );
 
     const bookingCloseTime =
       new Date(`${date}T${recurringAvailability.endTime}:00`);
 
     bookingCloseTime.setHours(
-      bookingCloseTime.getHours() - 15,
+      bookingCloseTime.getHours() - 1,
     );
 
     const currentTime =
