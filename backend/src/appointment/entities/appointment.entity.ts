@@ -55,6 +55,11 @@ import {
       default: AppointmentStatus.BOOKED,
     })
     status: AppointmentStatus;
+
+    @Column({
+      default: false,
+    })
+    reminderSent: boolean;
   
     @CreateDateColumn()
     createdAt: Date;

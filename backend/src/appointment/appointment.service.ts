@@ -273,8 +273,8 @@ export class AppointmentService {
 
     await this.notificationService.createNotification(
       patient.id,
-      'Appointment Booked',
-      `Appointment confirmed for ${date} at ${startTime} - ${endTime}.`,
+      'Appointment Booked', `Appointment confirmed for 
+       ${date} at ${startTime} - ${endTime}.`,
       NotificationType.APPOINTMENT_BOOKED,
     );
 
