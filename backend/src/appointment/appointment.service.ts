@@ -142,6 +142,55 @@ export class AppointmentService {
     const dayOfWeek =
       days[requestedDate.getDay()];
 
+    const recurringAvailability =
+      await this.recurringRepository.findOne({
+        where: {
+          doctorProfile: {
+            id: doctorId,
+          },
+          dayOfWeek,
+        },
+        relations: {
+          doctorProfile: true,
+        },
+      });
+
+    if (!recurringAvailability) {
+      throw new NotFoundException(
+        'Doctor unavailable today',
+      );
+    }
+
+    const bookingOpenTime =
+      new Date(`${date}T${recurringAvailability.startTime}:00`);
+
+    bookingOpenTime.setHours(
+      bookingOpenTime.getHours() - 30,
+    );
+
+    const bookingCloseTime =
+      new Date(`${date}T${recurringAvailability.endTime}:00`);
+
+    bookingCloseTime.setHours(
+      bookingCloseTime.getHours() - 15,
+    );
+
+    const currentTime =
+      new Date();
+
+    
+    if (currentTime < bookingOpenTime) {
+      throw new BadRequestException(
+        'Booking window has not opened yet',
+      );
+    }
+
+    if (currentTime > bookingCloseTime) {
+      throw new BadRequestException(
+        'Booking window has closed',
+      );
+    }
+
     let slotExists = false;
 
     const customAvailability =
