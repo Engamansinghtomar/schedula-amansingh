@@ -38,6 +38,17 @@ export class DoctorProfile {
   availability: string;
 
   @Column({
+    default: false,
+  })
+  allowFutureBooking: boolean;
+  
+  @Column({
+    type: 'int',
+    nullable: true,
+  })
+  maxFutureBookingDays: number | null;
+
+  @Column({
     type: 'text',
   })
   profileDetails: string;

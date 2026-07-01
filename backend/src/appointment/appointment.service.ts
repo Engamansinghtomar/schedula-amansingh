@@ -60,11 +60,15 @@ export class AppointmentService {
         },
       });
 
+
+
     if (!doctor) {
       throw new NotFoundException(
         'Doctor not found',
       );
     }
+
+    
 
     const patient =
       await this.patientRepository.findOne({
@@ -99,28 +103,43 @@ export class AppointmentService {
       );
     }
 
-    if (bookingDateString < todayDate) {
-      throw new BadRequestException(
-        'Past date booking is not allowed',
+    const maxFutureBookingDays =
+      doctor.maxFutureBookingDays ?? 7;
+
+    if (!doctor.allowFutureBooking) {
+      if (bookingDateString > todayDate) {
+        throw new BadRequestException(
+          'Booking is allowed only for today',
+        );
+      }
+    } else {
+      const lastAllowedDate = new Date(todayDate);
+      lastAllowedDate.setDate(
+        lastAllowedDate.getDate() +
+        maxFutureBookingDays,
       );
+
+      const lastAllowedDateString =
+        lastAllowedDate
+          .toISOString()
+          .split('T')[0];
+
+      if (
+        bookingDateString >
+        lastAllowedDateString
+      ) {
+        throw new BadRequestException(
+          `Booking is allowed only within ${maxFutureBookingDays} days`,
+        );
+      }
     }
 
-    if (bookingDateString > todayDate) {
-      throw new BadRequestException(
-        'Booking is allowed only for today',
-      );
-    }
-    
     if (startTime >= endTime) {
       throw new BadRequestException(
         'End time must be greater than start time',
       );
     }
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> 5d58298 (refactor: address mentor review comments)
 
     const requestedDate =
       new Date(date);
@@ -140,7 +159,6 @@ export class AppointmentService {
 
     const recurringAvailability =
       await this.recurringRepository.findOne({
-<<<<<<< HEAD
         where: {
           doctorProfile: {
             id: doctorId,
@@ -158,98 +176,36 @@ export class AppointmentService {
       );
     }
 
-    const bookingOpenTime =
-      new Date(`${date}T${recurringAvailability.startTime}:00`);
+    if (bookingDateString === todayDate) {
+      const bookingOpenTime =
+        new Date(`${date}T${recurringAvailability.startTime}:00`);
 
-    bookingOpenTime.setHours(
-      bookingOpenTime.getHours() - 2,
-    );
-
-    const bookingCloseTime =
-      new Date(`${date}T${recurringAvailability.endTime}:00`);
-
-    bookingCloseTime.setHours(
-      bookingCloseTime.getHours() - 1,
-    );
-
-    const currentTime =
-      new Date();
-
-
-    if (currentTime < bookingOpenTime) {
-      throw new BadRequestException(
-        'Booking window has not opened yet',
-      );
-    }
-
-    if (currentTime > bookingCloseTime) {
-      throw new BadRequestException(
-        'Booking window has closed',
-      );
-    }
-    const appointmentDateTime =
-      new Date(
-        `${date}T${startTime}:00`,
+      bookingOpenTime.setHours(
+        bookingOpenTime.getHours() - 2,
       );
 
-    if (
-      appointmentDateTime <= new Date()
-    ) {
-      throw new BadRequestException(
-        'Appointment must be booked for a future date and time',
+      const bookingCloseTime =
+        new Date(`${date}T${recurringAvailability.endTime}:00`);
+
+      bookingCloseTime.setHours(
+        bookingCloseTime.getHours() - 1,
       );
-    }
-    let slotExists = false;
 
-    const customAvailability =
-      await this.customRepository.find({
-=======
->>>>>>> 5d58298 (refactor: address mentor review comments)
-        where: {
-          doctorProfile: {
-            id: doctorId,
-          },
-          dayOfWeek,
-        },
-        relations: {
-          doctorProfile: true,
-        },
-      });
-
-    if (!recurringAvailability) {
-      throw new NotFoundException(
-        'Doctor unavailable today',
-      );
-    }
-
-    const bookingOpenTime =
-      new Date(`${date}T${recurringAvailability.startTime}:00`);
-
-    bookingOpenTime.setHours(
-      bookingOpenTime.getHours() - 2,
-    );
-
-    const bookingCloseTime =
-      new Date(`${date}T${recurringAvailability.endTime}:00`);
-
-    bookingCloseTime.setHours(
-      bookingCloseTime.getHours() - 1,
-    );
-
-    const currentTime =
-      new Date();
+      const currentTime =
+        new Date();
 
 
-    if (currentTime < bookingOpenTime) {
-      throw new BadRequestException(
-        'Booking window has not opened yet',
-      );
-    }
+      if (currentTime < bookingOpenTime) {
+        throw new BadRequestException(
+          'Booking window has not opened yet',
+        );
+      }
 
-    if (currentTime > bookingCloseTime) {
-      throw new BadRequestException(
-        'Booking window has closed',
-      );
+      if (currentTime > bookingCloseTime) {
+        throw new BadRequestException(
+          'Booking window has closed',
+        );
+      }
     }
     const appointmentDateTime =
       new Date(
