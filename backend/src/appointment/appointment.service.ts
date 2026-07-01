@@ -83,23 +83,44 @@ export class AppointmentService {
         'Patient profile not found',
       );
     }
+
+    const todayDate =
+      new Date().toISOString().split('T')[0];
+
+    const bookingDateString =
+      date;
+
+    const bookingDate =
+      new Date(`${date}T00:00:00`);
+
+    if (isNaN(bookingDate.getTime())) {
+      throw new BadRequestException(
+        'Invalid date format',
+      );
+    }
+
+    if (bookingDateString < todayDate) {
+      throw new BadRequestException(
+        'Past date booking is not allowed',
+      );
+    }
+
+    if (bookingDateString > todayDate) {
+      throw new BadRequestException(
+        'Booking is allowed only for today',
+      );
+    }
+    
     if (startTime >= endTime) {
       throw new BadRequestException(
         'End time must be greater than start time',
       );
     }
-    const appointmentDateTime =
-      new Date(
-        `${date}T${startTime}:00`,
-      );
+<<<<<<< HEAD
 
-    if (
-      appointmentDateTime <= new Date()
-    ) {
-      throw new BadRequestException(
-        'Appointment must be booked for a future date and time',
-      );
-    }
+=======
+    
+>>>>>>> 5d58298 (refactor: address mentor review comments)
 
     const requestedDate =
       new Date(date);
@@ -117,65 +138,139 @@ export class AppointmentService {
     const dayOfWeek =
       days[requestedDate.getDay()];
 
-    let slotExists = false;
-
-    const customAvailability =
-      await this.customRepository.find({
+    const recurringAvailability =
+      await this.recurringRepository.findOne({
+<<<<<<< HEAD
         where: {
           doctorProfile: {
             id: doctorId,
           },
-          date,
+          dayOfWeek,
         },
         relations: {
           doctorProfile: true,
         },
       });
 
-    if (customAvailability.length > 0) {
-      slotExists =
-        customAvailability.some(
-          (slot) =>
-            slot.startTime ===
-            startTime &&
-            slot.endTime === endTime,
-        );
-    } else {
-      const recurringAvailability =
-        await this.recurringRepository.find({
-          where: {
-            doctorProfile: {
-              id: doctorId,
-            },
-            dayOfWeek,
-          },
-          relations: {
-            doctorProfile: true,
-          },
-        });
-
-      slotExists =
-        recurringAvailability.some(
-          (slot) =>
-            startTime >= slot.startTime &&
-            endTime <= slot.endTime,
-        );
-
-      const waveAvailability =
-        recurringAvailability.find(
-          (slot) =>
-            slot.schedulingType ===
-            SchedulingType.WAVE,
-        );
-
-      if (waveAvailability) {
-        slotExists =
-          startTime ===
-          waveAvailability.startTime &&
-          endTime ===
-          waveAvailability.endTime;
-      }
+    if (!recurringAvailability) {
+      throw new NotFoundException(
+        'Doctor unavailable today',
+      );
     }
+
+    const bookingOpenTime =
+      new Date(`${date}T${recurringAvailability.startTime}:00`);
+
+    bookingOpenTime.setHours(
+      bookingOpenTime.getHours() - 2,
+    );
+
+    const bookingCloseTime =
+      new Date(`${date}T${recurringAvailability.endTime}:00`);
+
+    bookingCloseTime.setHours(
+      bookingCloseTime.getHours() - 1,
+    );
+
+    const currentTime =
+      new Date();
+
+
+    if (currentTime < bookingOpenTime) {
+      throw new BadRequestException(
+        'Booking window has not opened yet',
+      );
+    }
+
+    if (currentTime > bookingCloseTime) {
+      throw new BadRequestException(
+        'Booking window has closed',
+      );
+    }
+    const appointmentDateTime =
+      new Date(
+        `${date}T${startTime}:00`,
+      );
+
+    if (
+      appointmentDateTime <= new Date()
+    ) {
+      throw new BadRequestException(
+        'Appointment must be booked for a future date and time',
+      );
+    }
+    let slotExists = false;
+
+    const customAvailability =
+      await this.customRepository.find({
+=======
+>>>>>>> 5d58298 (refactor: address mentor review comments)
+        where: {
+          doctorProfile: {
+            id: doctorId,
+          },
+          dayOfWeek,
+        },
+        relations: {
+          doctorProfile: true,
+        },
+      });
+
+    if (!recurringAvailability) {
+      throw new NotFoundException(
+        'Doctor unavailable today',
+      );
+    }
+
+    const bookingOpenTime =
+      new Date(`${date}T${recurringAvailability.startTime}:00`);
+
+    bookingOpenTime.setHours(
+      bookingOpenTime.getHours() - 2,
+    );
+
+    const bookingCloseTime =
+      new Date(`${date}T${recurringAvailability.endTime}:00`);
+
+    bookingCloseTime.setHours(
+      bookingCloseTime.getHours() - 1,
+    );
+
+    const currentTime =
+      new Date();
+
+
+    if (currentTime < bookingOpenTime) {
+      throw new BadRequestException(
+        'Booking window has not opened yet',
+      );
+    }
+
+    if (currentTime > bookingCloseTime) {
+      throw new BadRequestException(
+        'Booking window has closed',
+      );
+    }
+    const appointmentDateTime =
+      new Date(
+        `${date}T${startTime}:00`,
+      );
+
+    if (
+      appointmentDateTime <= new Date()
+    ) {
+      throw new BadRequestException(
+        'Appointment must be booked for a future date and time',
+      );
+    }
+    const slotExists =
+      await this.validateSlotAvailability(
+        doctorId,
+        date,
+        dayOfWeek,
+        startTime,
+        endTime,
+      );
 
     if (!slotExists) {
       throw new BadRequestException(
@@ -271,10 +366,10 @@ export class AppointmentService {
         appointment,
       );
 
-    await this.notificationService.createNotification(
+    await this.sendAppointmentNotification(
       patient.id,
-      'Appointment Booked', `Appointment confirmed for 
-       ${date} at ${startTime} - ${endTime}.`,
+      'Appointment Booked',
+      `Appointment confirmed for ${date} at ${startTime} - ${endTime}.`,
       NotificationType.APPOINTMENT_BOOKED,
     );
 
@@ -461,7 +556,7 @@ export class AppointmentService {
         appointment,
       );
 
-    await this.notificationService.createNotification(
+    await this.sendAppointmentNotification(
       patient.id,
       'Appointment Cancelled',
       `Your appointment scheduled on ${appointment.date} at ${appointment.startTime} has been cancelled.`,
@@ -597,70 +692,14 @@ export class AppointmentService {
       requestedDate.getDay()
       ];
 
-    let slotExists = false;
-
-    const customAvailability =
-      await this.customRepository.find({
-        where: {
-          doctorProfile: {
-            id:
-              appointment.doctorProfile.id,
-          },
-          date,
-        },
-        relations: {
-          doctorProfile: true,
-        },
-      });
-
-    if (
-      customAvailability.length > 0
-    ) {
-      slotExists =
-        customAvailability.some(
-          (slot) =>
-            slot.startTime ===
-            startTime &&
-            slot.endTime ===
-            endTime,
-        );
-    } else {
-      const recurringAvailability =
-        await this.recurringRepository.find({
-          where: {
-            doctorProfile: {
-              id:
-                appointment.doctorProfile.id,
-            },
-            dayOfWeek,
-          },
-          relations: {
-            doctorProfile: true,
-          },
-        });
-
-        slotExists =
-        recurringAvailability.some(
-          (slot) =>
-            startTime >= slot.startTime &&
-            endTime <= slot.endTime,
-        );
-
-      const waveAvailability =
-        recurringAvailability.find(
-          (slot) =>
-            slot.schedulingType ===
-            SchedulingType.WAVE,
-        );
-
-      if (waveAvailability) {
-        slotExists =
-          startTime ===
-          waveAvailability.startTime &&
-          endTime ===
-          waveAvailability.endTime;
-      }
-    }
+    const slotExists =
+      await this.validateSlotAvailability(
+        appointment.doctorProfile.id,
+        date,
+        dayOfWeek,
+        startTime,
+        endTime,
+      );
 
     if (!slotExists) {
       const suggestedSlot =
@@ -765,12 +804,12 @@ export class AppointmentService {
         appointment,
       );
 
-      await this.notificationService.createNotification(
-        patient.id,
-        'Appointment Rescheduled',
-        `Your appointment has been rescheduled to ${date} at ${startTime}.`,
-        NotificationType.APPOINTMENT_RESCHEDULED,
-      );
+    await this.sendAppointmentNotification(
+      patient.id,
+      'Appointment Rescheduled',
+      `Your appointment has been rescheduled to ${date} at ${startTime}.`,
+      NotificationType.APPOINTMENT_RESCHEDULED,
+    );
 
     return {
       message:
@@ -779,6 +818,90 @@ export class AppointmentService {
         updatedAppointment,
     };
   }
+
+  private async validateSlotAvailability(
+    doctorId: string,
+    date: string,
+    dayOfWeek: DayOfWeek,
+    startTime: string,
+    endTime: string,
+  ): Promise<boolean> {
+    let slotExists = false;
+
+    const customAvailability =
+      await this.customRepository.find({
+        where: {
+          doctorProfile: {
+            id: doctorId,
+          },
+          date,
+        },
+        relations: {
+          doctorProfile: true,
+        },
+      });
+
+    if (customAvailability.length > 0) {
+      slotExists =
+        customAvailability.some(
+          (slot) =>
+            slot.startTime === startTime &&
+            slot.endTime === endTime,
+        );
+    } else {
+      const recurringAvailability =
+        await this.recurringRepository.find({
+          where: {
+            doctorProfile: {
+              id: doctorId,
+            },
+            dayOfWeek,
+          },
+          relations: {
+            doctorProfile: true,
+          },
+        });
+
+      slotExists =
+        recurringAvailability.some(
+          (slot) =>
+            startTime >= slot.startTime &&
+            endTime <= slot.endTime,
+        );
+
+      const waveAvailability =
+        recurringAvailability.find(
+          (slot) =>
+            slot.schedulingType ===
+            SchedulingType.WAVE,
+        );
+
+      if (waveAvailability) {
+        slotExists =
+          startTime ===
+          waveAvailability.startTime &&
+          endTime ===
+          waveAvailability.endTime;
+      }
+    }
+
+    return slotExists;
+  }
+
+  private async sendAppointmentNotification(
+    patientId: string,
+    title: string,
+    message: string,
+    type: NotificationType,
+  ) {
+    await this.notificationService.createNotification(
+      patientId,
+      title,
+      message,
+      type,
+    );
+  }
+
 
   private async getSuggestedSlot(
     doctorId: string,
