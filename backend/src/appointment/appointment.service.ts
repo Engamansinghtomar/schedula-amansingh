@@ -113,18 +113,7 @@ export class AppointmentService {
         'End time must be greater than start time',
       );
     }
-    const appointmentDateTime =
-      new Date(
-        `${date}T${startTime}:00`,
-      );
 
-    if (
-      appointmentDateTime <= new Date()
-    ) {
-      throw new BadRequestException(
-        'Appointment must be booked for a future date and time',
-      );
-    }
 
     const requestedDate =
       new Date(date);
@@ -178,7 +167,7 @@ export class AppointmentService {
     const currentTime =
       new Date();
 
-    
+
     if (currentTime < bookingOpenTime) {
       throw new BadRequestException(
         'Booking window has not opened yet',
@@ -190,7 +179,18 @@ export class AppointmentService {
         'Booking window has closed',
       );
     }
+    const appointmentDateTime =
+      new Date(
+        `${date}T${startTime}:00`,
+      );
 
+    if (
+      appointmentDateTime <= new Date()
+    ) {
+      throw new BadRequestException(
+        'Appointment must be booked for a future date and time',
+      );
+    }
     let slotExists = false;
 
     const customAvailability =
