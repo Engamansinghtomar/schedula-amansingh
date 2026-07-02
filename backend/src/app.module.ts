@@ -14,6 +14,7 @@ import { AvailabilityModule } from './availability/availability.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { NotificationModule } from './notification/notification.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { DoctorLeaveModule } from './doctor-leave/doctor-leave.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AvailabilityModule,
     AppointmentModule,
     NotificationModule,
+    DoctorLeaveModule,
   ],
 
   controllers: [AppController],

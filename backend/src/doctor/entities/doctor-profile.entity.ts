@@ -13,6 +13,7 @@ import { RecurringAvailability } from '../../availability/entities/recurring-ava
 import { CustomAvailability } from '../../availability/entities/custom-availability.entity';
 
 import { Appointment } from '../../appointment/entities/appointment.entity';
+import { DoctorLeave } from '../../doctor-leave/entities/doctor-leave.entity';
 
 @Entity('doctor_profiles')
 export class DoctorProfile {
@@ -65,4 +66,10 @@ export class DoctorProfile {
     (appointment) => appointment.doctorProfile,
   )
   appointments: Appointment[];
+
+  @OneToMany(
+    () => DoctorLeave,
+    (doctorLeave) => doctorLeave.doctorProfile,
+  )
+  doctorLeaves: DoctorLeave[];
 }

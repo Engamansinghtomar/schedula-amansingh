@@ -25,6 +25,8 @@ import { SchedulingType } from '../common/enums/scheduling-type.enum';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../notification/enums/notification-type.enum';
 
+import { DoctorLeave } from '../doctor-leave/entities/doctor-leave.entity';
+
 @Injectable()
 export class AppointmentService {
   constructor(
@@ -42,6 +44,9 @@ export class AppointmentService {
 
     @InjectRepository(CustomAvailability)
     private readonly customRepository: Repository<CustomAvailability>,
+
+    @InjectRepository(DoctorLeave)
+    private readonly doctorLeaveRepository: Repository<DoctorLeave>,
 
     private readonly notificationService: NotificationService,
   ) { }
@@ -68,7 +73,21 @@ export class AppointmentService {
       );
     }
 
+    const doctorLeave =
+      await this.doctorLeaveRepository.findOne({
+        where: {
+          doctorProfile: {
+            id: doctorId,
+          },
+          leaveDate: date,
+        },
+      });
 
+    if (doctorLeave) {
+      throw new ConflictException(
+        'Doctor is unavailable on this date. Please select another available date.',
+      );
+    }
 
     const patient =
       await this.patientRepository.findOne({
