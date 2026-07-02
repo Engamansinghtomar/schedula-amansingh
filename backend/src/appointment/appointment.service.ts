@@ -68,7 +68,7 @@ export class AppointmentService {
       );
     }
 
-    
+
 
     const patient =
       await this.patientRepository.findOne({
@@ -103,36 +103,6 @@ export class AppointmentService {
       );
     }
 
-    const maxFutureBookingDays =
-      doctor.maxFutureBookingDays ?? 7;
-
-    if (!doctor.allowFutureBooking) {
-      if (bookingDateString > todayDate) {
-        throw new BadRequestException(
-          'Booking is allowed only for today',
-        );
-      }
-    } else {
-      const lastAllowedDate = new Date(todayDate);
-      lastAllowedDate.setDate(
-        lastAllowedDate.getDate() +
-        maxFutureBookingDays,
-      );
-
-      const lastAllowedDateString =
-        lastAllowedDate
-          .toISOString()
-          .split('T')[0];
-
-      if (
-        bookingDateString >
-        lastAllowedDateString
-      ) {
-        throw new BadRequestException(
-          `Booking is allowed only within ${maxFutureBookingDays} days`,
-        );
-      }
-    }
 
     if (startTime >= endTime) {
       throw new BadRequestException(
@@ -173,6 +143,61 @@ export class AppointmentService {
     if (!recurringAvailability) {
       throw new NotFoundException(
         'Doctor unavailable today',
+      );
+    }
+
+    const maxFutureBookingDays =
+      recurringAvailability.maxFutureBookingDays ?? 7;
+
+    if (!recurringAvailability.allowFutureBooking) {
+      if (bookingDateString > todayDate) {
+        throw new BadRequestException(
+          'Booking is allowed only for today',
+        );
+      }
+    } else {
+      const lastAllowedDate = new Date(todayDate);
+
+      lastAllowedDate.setDate(
+        lastAllowedDate.getDate() +
+        maxFutureBookingDays,
+      );
+
+      const lastAllowedDateString =
+        lastAllowedDate
+          .toISOString()
+          .split('T')[0];
+
+      if (
+        bookingDateString >
+        lastAllowedDateString
+      ) {
+        throw new BadRequestException(
+          `Booking is allowed only within ${maxFutureBookingDays} days`,
+        );
+      }
+    }
+
+    const customAvailability =
+      await this.customRepository.findOne({
+        where: {
+          doctorProfile: {
+            id: doctorId,
+          },
+          date,
+        },
+        relations: {
+          doctorProfile: true,
+        },
+      });
+
+    if (
+      customAvailability &&
+      !customAvailability.allowFutureBooking &&
+      bookingDateString > todayDate
+    ) {
+      throw new BadRequestException(
+        'Future booking is not allowed for this date',
       );
     }
 

@@ -66,4 +66,15 @@ import {
   
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @Column({
+      default: false,
+    })
+    allowFutureBooking: boolean;
+    
+    @Column({
+      type: 'int',
+      nullable: true,
+    })
+    maxFutureBookingDays: number | null;
   }

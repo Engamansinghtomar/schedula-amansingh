@@ -3,9 +3,6 @@ import {
   IsNotEmpty,
   IsNumber,
   Min,
-  IsBoolean,
-  IsInt,
-  IsOptional,
 } from 'class-validator';
 
 export class CreateDoctorProfileDto {
@@ -32,15 +29,6 @@ export class CreateDoctorProfileDto {
   @IsString()
   @IsNotEmpty()
   availability: string;
-
-  @IsBoolean()
-  @IsOptional()
-  allowFutureBooking?: boolean;
-
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  maxFutureBookingDays?: number;
 
   @IsString()
   @IsNotEmpty()
