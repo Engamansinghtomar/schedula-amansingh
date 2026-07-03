@@ -18,6 +18,7 @@ import { AvailabilityModule } from '../availability/availability.module';
 import { NotificationModule } from '../notification/notification.module';
 import { AppointmentReminderService } from './appointment-reminder/appointment-reminder.service';
 
+import { DoctorLeave } from '../doctor-leave/entities/doctor-leave.entity';
 
 
 @Module({
@@ -29,6 +30,7 @@ import { AppointmentReminderService } from './appointment-reminder/appointment-r
       PatientProfile,
       RecurringAvailability,
       CustomAvailability,
+      DoctorLeave,
      
     ]),
     AvailabilityModule,
