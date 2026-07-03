@@ -27,6 +27,8 @@ import { NotificationType } from '../notification/enums/notification-type.enum';
 
 import { DoctorLeave } from '../doctor-leave/entities/doctor-leave.entity';
 
+import { Role } from '../common/enums/role.enum';
+
 @Injectable()
 export class AppointmentService {
   constructor(
@@ -468,26 +470,52 @@ export class AppointmentService {
 
   async cancelAppointment(
     userId: string,
+    userRole: Role,
     appointmentId: string,
   ) {
-    const patient =
-      await this.patientRepository.findOne({
-        where: {
-          user: {
-            id: userId,
+    let patient: PatientProfile | null = null;
+    let doctor: DoctorProfile | null = null;
+  
+    if (userRole === Role.PATIENT) {
+      patient =
+        await this.patientRepository.findOne({
+          where: {
+            user: {
+              id: userId,
+            },
           },
-        },
-        relations: {
-          user: true,
-        },
-      });
-
-    if (!patient) {
-      throw new NotFoundException(
-        'Patient profile not found',
-      );
+          relations: {
+            user: true,
+          },
+        });
+  
+      if (!patient) {
+        throw new NotFoundException(
+          'Patient profile not found',
+        );
+      }
     }
-
+  
+    if (userRole === Role.DOCTOR) {
+      doctor =
+        await this.doctorRepository.findOne({
+          where: {
+            user: {
+              id: userId,
+            },
+          },
+          relations: {
+            user: true,
+          },
+        });
+  
+      if (!doctor) {
+        throw new NotFoundException(
+          'Doctor profile not found',
+        );
+      }
+    }
+  
     const appointment =
       await this.appointmentRepository.findOne({
         where: {
@@ -495,24 +523,34 @@ export class AppointmentService {
         },
         relations: {
           patientProfile: true,
+          doctorProfile: true,
         },
       });
-
+  
     if (!appointment) {
       throw new NotFoundException(
         'Appointment not found',
       );
     }
-
+  
     if (
-      appointment.patientProfile.id !==
-      patient.id
+      userRole === Role.PATIENT &&
+      appointment.patientProfile.id !== patient!.id
     ) {
       throw new ConflictException(
         'You can only cancel your own appointment',
       );
     }
-
+  
+    if (
+      userRole === Role.DOCTOR &&
+      appointment.doctorProfile.id !== doctor!.id
+    ) {
+      throw new ConflictException(
+        'You can only cancel your own appointments',
+      );
+    }
+  
     if (
       appointment.status ===
       AppointmentStatus.CANCELLED
@@ -521,12 +559,12 @@ export class AppointmentService {
         'Appointment already cancelled',
       );
     }
-
+  
     const appointmentDateTime =
       new Date(
         `${appointment.date}T${appointment.startTime}:00`,
       );
-
+  
     if (
       appointmentDateTime <= new Date()
     ) {
@@ -534,38 +572,37 @@ export class AppointmentService {
         'Past appointments cannot be cancelled',
       );
     }
-
+  
     const minutesRemaining =
       (
         appointmentDateTime.getTime() -
         new Date().getTime()
       ) /
       (1000 * 60);
-
+  
     if (minutesRemaining < 30) {
       throw new BadRequestException(
         'Appointment cannot be cancelled within 30 minutes of start time',
       );
     }
-
+  
     appointment.status =
       AppointmentStatus.CANCELLED;
-
+  
     const updatedAppointment =
       await this.appointmentRepository.save(
         appointment,
       );
-
+  
     await this.sendAppointmentNotification(
-      patient.id,
+      appointment.patientProfile.id,
       'Appointment Cancelled',
       `Your appointment scheduled on ${appointment.date} at ${appointment.startTime} has been cancelled.`,
       NotificationType.APPOINTMENT_CANCELLED,
     );
-
+  
     return updatedAppointment;
   }
-
   async rescheduleAppointment(
     userId: string,
     appointmentId: string,

@@ -39,7 +39,7 @@ export class NotificationService {
         message,
         type,
       });
-
+  
     return this.notificationRepository.save(
       notification,
     );

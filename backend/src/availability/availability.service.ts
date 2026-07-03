@@ -26,6 +26,9 @@ import { AppointmentStatus } from '../appointment/enums/appointment-status.enum'
 
 import { SchedulingType } from '../common/enums/scheduling-type.enum';
 
+import { NotificationService } from '../notification/notification.service';
+import { NotificationType } from '../notification/enums/notification-type.enum';
+
 @Injectable()
 export class AvailabilityService {
   constructor(
@@ -42,6 +45,9 @@ export class AvailabilityService {
     private readonly appointmentRepository: Repository<Appointment>,
 
     private readonly usersService: UsersService,
+    
+    private readonly notificationService: NotificationService,
+    
   ) { }
 
   async createRecurringAvailability(
@@ -322,7 +328,7 @@ export class AvailabilityService {
 
     availability.maxFutureBookingDays =
       dto.maxFutureBookingDays ?? null;
-      
+
     return this.recurringRepository.save(
       availability,
     );
@@ -400,13 +406,13 @@ export class AvailabilityService {
           user: true,
         },
       });
-
+  
     if (!doctor) {
       throw new NotFoundException(
         'Doctor profile not found',
       );
     }
-
+  
     if (
       dto.startTime >= dto.endTime
     ) {
@@ -414,7 +420,7 @@ export class AvailabilityService {
         'Start time must be before end time',
       );
     }
-
+  
     const existingOverrides =
       await this.customRepository.find({
         where: {
@@ -427,43 +433,82 @@ export class AvailabilityService {
           doctorProfile: true,
         },
       });
-
+  
     const duplicateSlot =
       existingOverrides.find(
         (slot) =>
           slot.startTime === dto.startTime &&
           slot.endTime === dto.endTime,
       );
-
+  
     if (duplicateSlot) {
       throw new ConflictException(
         'Custom availability already exists',
       );
     }
-
+  
     const overlappingSlot =
       existingOverrides.find(
         (slot) =>
           dto.startTime < slot.endTime &&
           dto.endTime > slot.startTime,
       );
-
+  
     if (overlappingSlot) {
       throw new ConflictException(
         'Custom availability overlaps with an existing slot',
       );
     }
-
+  
+    const affectedAppointments =
+      await this.appointmentRepository.find({
+        where: {
+          doctorProfile: {
+            id: doctor.id,
+          },
+          date: dto.date,
+          status: AppointmentStatus.BOOKED,
+        },
+        relations: {
+          patientProfile: true,
+        },
+      });
+  
+    const conflictingAppointments =
+      affectedAppointments.filter(
+        (appointment) =>
+          appointment.startTime < dto.startTime ||
+          appointment.endTime > dto.endTime,
+      );
+  
+    for (const appointment of conflictingAppointments) {
+      appointment.status =
+        AppointmentStatus.CANCELLED;
+  
+      await this.appointmentRepository.save(
+        appointment,
+      );
+  
+      await this.notificationService.createNotification(
+        appointment.patientProfile.id,
+        'Appointment Cancelled',
+        'Your appointment has been cancelled because the doctor updated their availability. Please book another appointment.',
+        NotificationType.APPOINTMENT_CANCELLED,
+      );
+    }
+  
     const availability =
       this.customRepository.create({
         ...dto,
         doctorProfile: doctor,
       });
-
+  
     return this.customRepository.save(
       availability,
     );
   }
+
+
   async getAvailabilityByDate(
     userId: string,
     date: string,

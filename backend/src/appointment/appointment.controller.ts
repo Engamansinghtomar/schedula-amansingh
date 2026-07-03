@@ -79,7 +79,7 @@ export class AppointmentController {
     JwtAuthGuard,
     RolesGuard,
   )
-  @Roles(Role.PATIENT)
+  @Roles(Role.PATIENT,Role.DOCTOR)
   @Patch(':id/cancel')
   cancelAppointment(
     @Req() req: any,
@@ -88,6 +88,7 @@ export class AppointmentController {
   ) {
     return this.appointmentService.cancelAppointment(
       req.user.id,
+      req.user.role,
       appointmentId,
     );
   }
