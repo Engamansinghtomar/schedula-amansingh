@@ -25,6 +25,8 @@ import { SchedulingType } from '../common/enums/scheduling-type.enum';
 import { NotificationService } from '../notification/notification.service';
 import { NotificationType } from '../notification/enums/notification-type.enum';
 
+import { DoctorLeave } from '../doctor-leave/entities/doctor-leave.entity';
+
 @Injectable()
 export class AppointmentService {
   constructor(
@@ -43,6 +45,9 @@ export class AppointmentService {
     @InjectRepository(CustomAvailability)
     private readonly customRepository: Repository<CustomAvailability>,
 
+    @InjectRepository(DoctorLeave)
+    private readonly doctorLeaveRepository: Repository<DoctorLeave>,
+
     private readonly notificationService: NotificationService,
   ) { }
 
@@ -60,9 +65,27 @@ export class AppointmentService {
         },
       });
 
+
+
     if (!doctor) {
       throw new NotFoundException(
         'Doctor not found',
+      );
+    }
+
+    const doctorLeave =
+      await this.doctorLeaveRepository.findOne({
+        where: {
+          doctorProfile: {
+            id: doctorId,
+          },
+          leaveDate: date,
+        },
+      });
+
+    if (doctorLeave) {
+      throw new ConflictException(
+        'Doctor is unavailable on this date. Please select another available date.',
       );
     }
 
@@ -99,28 +122,13 @@ export class AppointmentService {
       );
     }
 
-    if (bookingDateString < todayDate) {
-      throw new BadRequestException(
-        'Past date booking is not allowed',
-      );
-    }
 
-    if (bookingDateString > todayDate) {
-      throw new BadRequestException(
-        'Booking is allowed only for today',
-      );
-    }
-    
     if (startTime >= endTime) {
       throw new BadRequestException(
         'End time must be greater than start time',
       );
     }
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> 5d58298 (refactor: address mentor review comments)
 
     const requestedDate =
       new Date(date);
@@ -140,7 +148,6 @@ export class AppointmentService {
 
     const recurringAvailability =
       await this.recurringRepository.findOne({
-<<<<<<< HEAD
         where: {
           doctorProfile: {
             id: doctorId,
@@ -158,98 +165,91 @@ export class AppointmentService {
       );
     }
 
-    const bookingOpenTime =
-      new Date(`${date}T${recurringAvailability.startTime}:00`);
+    const maxFutureBookingDays =
+      recurringAvailability.maxFutureBookingDays ?? 7;
 
-    bookingOpenTime.setHours(
-      bookingOpenTime.getHours() - 2,
-    );
+    if (!recurringAvailability.allowFutureBooking) {
+      if (bookingDateString > todayDate) {
+        throw new BadRequestException(
+          'Booking is allowed only for today',
+        );
+      }
+    } else {
+      const lastAllowedDate = new Date(todayDate);
 
-    const bookingCloseTime =
-      new Date(`${date}T${recurringAvailability.endTime}:00`);
-
-    bookingCloseTime.setHours(
-      bookingCloseTime.getHours() - 1,
-    );
-
-    const currentTime =
-      new Date();
-
-
-    if (currentTime < bookingOpenTime) {
-      throw new BadRequestException(
-        'Booking window has not opened yet',
+      lastAllowedDate.setDate(
+        lastAllowedDate.getDate() +
+        maxFutureBookingDays,
       );
+
+      const lastAllowedDateString =
+        lastAllowedDate
+          .toISOString()
+          .split('T')[0];
+
+      if (
+        bookingDateString >
+        lastAllowedDateString
+      ) {
+        throw new BadRequestException(
+          `Booking is allowed only within ${maxFutureBookingDays} days`,
+        );
+      }
     }
-
-    if (currentTime > bookingCloseTime) {
-      throw new BadRequestException(
-        'Booking window has closed',
-      );
-    }
-    const appointmentDateTime =
-      new Date(
-        `${date}T${startTime}:00`,
-      );
-
-    if (
-      appointmentDateTime <= new Date()
-    ) {
-      throw new BadRequestException(
-        'Appointment must be booked for a future date and time',
-      );
-    }
-    let slotExists = false;
 
     const customAvailability =
-      await this.customRepository.find({
-=======
->>>>>>> 5d58298 (refactor: address mentor review comments)
+      await this.customRepository.findOne({
         where: {
           doctorProfile: {
             id: doctorId,
           },
-          dayOfWeek,
+          date,
         },
         relations: {
           doctorProfile: true,
         },
       });
 
-    if (!recurringAvailability) {
-      throw new NotFoundException(
-        'Doctor unavailable today',
+    if (
+      customAvailability &&
+      !customAvailability.allowFutureBooking &&
+      bookingDateString > todayDate
+    ) {
+      throw new BadRequestException(
+        'Future booking is not allowed for this date',
       );
     }
 
-    const bookingOpenTime =
-      new Date(`${date}T${recurringAvailability.startTime}:00`);
+    if (bookingDateString === todayDate) {
+      const bookingOpenTime =
+        new Date(`${date}T${recurringAvailability.startTime}:00`);
 
-    bookingOpenTime.setHours(
-      bookingOpenTime.getHours() - 2,
-    );
-
-    const bookingCloseTime =
-      new Date(`${date}T${recurringAvailability.endTime}:00`);
-
-    bookingCloseTime.setHours(
-      bookingCloseTime.getHours() - 1,
-    );
-
-    const currentTime =
-      new Date();
-
-
-    if (currentTime < bookingOpenTime) {
-      throw new BadRequestException(
-        'Booking window has not opened yet',
+      bookingOpenTime.setHours(
+        bookingOpenTime.getHours() - 2,
       );
-    }
 
-    if (currentTime > bookingCloseTime) {
-      throw new BadRequestException(
-        'Booking window has closed',
+      const bookingCloseTime =
+        new Date(`${date}T${recurringAvailability.endTime}:00`);
+
+      bookingCloseTime.setHours(
+        bookingCloseTime.getHours() - 1,
       );
+
+      const currentTime =
+        new Date();
+
+
+      if (currentTime < bookingOpenTime) {
+        throw new BadRequestException(
+          'Booking window has not opened yet',
+        );
+      }
+
+      if (currentTime > bookingCloseTime) {
+        throw new BadRequestException(
+          'Booking window has closed',
+        );
+      }
     }
     const appointmentDateTime =
       new Date(

@@ -317,6 +317,12 @@ export class AvailabilityService {
     availability.maxCapacity =
       dto.maxCapacity;
 
+    availability.allowFutureBooking =
+      dto.allowFutureBooking ?? false;
+
+    availability.maxFutureBookingDays =
+      dto.maxFutureBookingDays ?? null;
+      
     return this.recurringRepository.save(
       availability,
     );
