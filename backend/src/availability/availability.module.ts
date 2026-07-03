@@ -12,6 +12,7 @@ import { UsersModule } from '../users/users.module';
 import { AvailabilityService } from './availability.service';
 import { AvailabilityController } from './availability.controller';
 
+import { NotificationModule } from '../notification/notification.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -21,6 +22,7 @@ import { AvailabilityController } from './availability.controller';
       Appointment,
     ]),
     UsersModule,
+    NotificationModule,
   ],
   providers: [AvailabilityService],
   exports: [AvailabilityService],
